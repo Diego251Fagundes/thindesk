@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import java.util.List;
 import com.pfc.thindesk.repository.ChamadoRepository;
 
@@ -16,6 +21,9 @@ public class ChamadoService {
 
     @Autowired
     private ChamadoRepository chamadoRepository;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public Chamado criarChamado(AberturaChamadoRequest dados, String usuario) {
         if (dados.titulo() == null || dados.titulo().isBlank()
@@ -59,26 +67,24 @@ public class ChamadoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A solucao e obrigatoria.");
         }
 
-        Chamado chamado = chamadoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado."));
-        chamado.setSolucao(dados.solucao().strip());
-        chamado.setTecnico(tecnico);
-        chamado.setStatus("RESOLVIDO");
-        chamado.setDataResolucao(Instant.now());
-        return chamadoRepository.save(chamado);
-    }
+        if (!chamadoRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado.");
+        }
 
-    public Chamado atualizarChamado(String id, Chamado chamadoAtualizado) {
-        return chamadoRepository.findById(id)
-                .map(chamado -> {
-                    chamado.setDescricao(chamadoAtualizado.getDescricao());
-                    chamado.setStatus(chamadoAtualizado.getStatus());
-                    chamado.setTipo(chamadoAtualizado.getTipo());
-                    chamado.setTecnico(chamadoAtualizado.getTecnico());
-                    chamado.setUsuario(chamadoAtualizado.getUsuario());
-                    return chamadoRepository.save(chamado);
-                })
-                .orElseThrow(() -> new RuntimeException("Chamado não encontrado com id: " + id));
+        // A condicao no MongoDB impede duas resolucoes do mesmo chamado.
+        Query consulta = Query.query(Criteria.where("id").is(id).and("status").is("ABERTO"));
+        Update atualizacao = new Update()
+                .set("solucao", dados.solucao().strip())
+                .set("tecnico", tecnico)
+                .set("status", "RESOLVIDO")
+                .set("dataResolucao", Instant.now());
+        Chamado chamado = mongoTemplate.findAndModify(consulta, atualizacao,
+                FindAndModifyOptions.options().returnNew(true), Chamado.class);
+
+        if (chamado == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Chamados resolvidos nao podem ser alterados.");
+        }
+        return chamado;
     }
 
 }
