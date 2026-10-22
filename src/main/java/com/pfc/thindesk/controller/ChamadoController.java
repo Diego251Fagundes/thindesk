@@ -25,8 +25,18 @@ public class ChamadoController {
     }
 
     @GetMapping
-    public List<Chamado> listarChamados() {
-        return chamadoService.listarChamados();
+    public List<Chamado> listarChamados(Principal solicitante) {
+        return chamadoService.listarChamados(solicitante.getName());
+    }
+
+    @GetMapping("/usuario/{id}")
+    public List<Chamado> listarChamadosDoUsuario(@PathVariable("id") String id, Principal solicitante) {
+        return chamadoService.listarChamadosDoUsuario(id, solicitante.getName());
+    }
+
+    @GetMapping("/{id}")
+    public Chamado consultarChamado(@PathVariable("id") String id, Principal solicitante) {
+        return chamadoService.consultarChamado(id, solicitante.getName());
     }
 
     @PutMapping("/{id}")

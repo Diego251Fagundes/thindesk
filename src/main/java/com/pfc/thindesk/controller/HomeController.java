@@ -9,6 +9,7 @@ import com.pfc.thindesk.service.ClienteService;
 import com.pfc.thindesk.service.ChamadoService;
 import com.pfc.thindesk.service.HorarioAtendimentoService;
 import java.util.List;
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,8 +43,8 @@ public class HomeController {
     }
 
     @GetMapping("/chamados")
-    public String chamados(Model model) {
-        List<Chamado> chamados = chamadoService.listarChamados();
+    public String chamados(Model model, Principal solicitante) {
+        List<Chamado> chamados = chamadoService.listarChamados(solicitante.getName());
         model.addAttribute("chamados", chamados); // Passa a lista para o modelo
         String fragment = "chamados :: content";
         log.info("Carregando fragmento: {}", fragment); // Log para depuração
