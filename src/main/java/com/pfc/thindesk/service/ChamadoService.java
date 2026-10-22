@@ -31,8 +31,26 @@ public class ChamadoService {
         return chamadoRepository.save(chamado);
     }
 
-    public List<Chamado> listarChamados() {
-        return chamadoRepository.findAll();
+    public List<Chamado> listarChamados(String usuario) {
+        return chamadoRepository.findByUsuario(usuario);
+    }
+
+    public List<Chamado> listarChamadosDoUsuario(String usuario, String solicitante) {
+        validarAcesso(usuario, solicitante);
+        return listarChamados(usuario);
+    }
+
+    public Chamado consultarChamado(String id, String solicitante) {
+        Chamado chamado = chamadoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado."));
+        validarAcesso(chamado.getUsuario(), solicitante);
+        return chamado;
+    }
+
+    private void validarAcesso(String usuario, String solicitante) {
+        if (!solicitante.equals(usuario)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Voce pode consultar apenas os seus chamados.");
+        }
     }
 
     public Chamado atualizarChamado(String id, Chamado chamadoAtualizado) {
