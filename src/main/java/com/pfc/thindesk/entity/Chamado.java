@@ -17,6 +17,8 @@ public class Chamado{
     private String tecnico;
     private String usuario;
     private Instant dataAbertura;
+    private String solucao;
+    private Instant dataResolucao;
 
     public String getId() {
         return id;
@@ -80,6 +82,22 @@ public class Chamado{
 
     public void setDataAbertura(Instant dataAbertura) {
         this.dataAbertura = dataAbertura;
+    }
+
+    public String getSolucao() {
+        return solucao;
+    }
+
+    public void setSolucao(String solucao) {
+        this.solucao = solucao;
+    }
+
+    public Instant getDataResolucao() {
+        return dataResolucao;
+    }
+
+    public void setDataResolucao(Instant dataResolucao) {
+        this.dataResolucao = dataResolucao;
     }
     
     
