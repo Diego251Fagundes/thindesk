@@ -2,6 +2,7 @@ package com.pfc.thindesk.service;
 
 import com.pfc.thindesk.entity.Chamado;
 import com.pfc.thindesk.dto.AberturaChamadoRequest;
+import com.pfc.thindesk.dto.ResolucaoChamadoRequest;
 import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,6 +52,20 @@ public class ChamadoService {
         if (!solicitante.equals(usuario)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Voce pode consultar apenas os seus chamados.");
         }
+    }
+
+    public Chamado resolverChamado(String id, ResolucaoChamadoRequest dados, String tecnico) {
+        if (dados.solucao() == null || dados.solucao().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A solucao e obrigatoria.");
+        }
+
+        Chamado chamado = chamadoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado."));
+        chamado.setSolucao(dados.solucao().strip());
+        chamado.setTecnico(tecnico);
+        chamado.setStatus("RESOLVIDO");
+        chamado.setDataResolucao(Instant.now());
+        return chamadoRepository.save(chamado);
     }
 
     public Chamado atualizarChamado(String id, Chamado chamadoAtualizado) {
