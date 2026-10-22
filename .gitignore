@@ -1,0 +1,28 @@
+# Arquivos gerados pelo Maven
+/target/
+
+# Configuracoes locais e credenciais
+.env
+.env.*
+!.env.example
+/application-local.properties
+/src/main/resources/application-local.properties
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# IDEs e sistema operacional
+/.idea/
+/.vscode/
+*.iml
+/.classpath
+/.project
+/.settings/
+/nbproject/private/
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
