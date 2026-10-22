@@ -1,11 +1,14 @@
 package com.pfc.thindesk.controller;
 
 import com.pfc.thindesk.entity.Chamado;
+import com.pfc.thindesk.dto.AberturaChamadoRequest;
 import com.pfc.thindesk.service.ChamadoService;
+import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 
 @RestController
@@ -16,8 +19,9 @@ public class ChamadoController {
     private ChamadoService chamadoService;
 
     @PostMapping
-    public Chamado criarChamado(@RequestBody Chamado chamado) {
-        return chamadoService.criarChamado(chamado);
+    public ResponseEntity<Chamado> criarChamado(@RequestBody AberturaChamadoRequest dados, Principal solicitante) {
+        Chamado chamado = chamadoService.criarChamado(dados, solicitante.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(chamado);
     }
 
     @GetMapping
