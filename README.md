@@ -14,26 +14,23 @@ Projeto acadêmico em Java com Spring Boot, API REST e MongoDB para abertura, ac
 
 - JDK 23 configurado no `JAVA_HOME` e no `PATH`.
 - Maven instalado e disponível no terminal.
-- MongoDB Community Server local (o comando `mongod` deve estar no `PATH`; neste computador, o executável já foi preparado na pasta `.local`).
+- Uma conta no MongoDB Atlas, com um cluster gratuito, usuário do banco e o IP do computador autorizado.
 - Postman, Insomnia ou ferramenta equivalente para utilizar a API.
 
 ## Como rodar localmente
 
-1. Na raiz do projeto, inicie o MongoDB local:
-
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\iniciar-mongodb.ps1
-   ```
-
-   O banco utiliza `mongodb://localhost:27017/thindesk`. Quando iniciado pelo script, seus dados ficam em `.local/mongodb/dados`, fora do Git e da pasta de compilação. Execute o script novamente após reiniciar o computador.
-2. Na raiz do projeto, configure as variáveis de ambiente no PowerShell. Substitua as senhas de exemplo pelas suas senhas locais:
+1. No Atlas, crie um usuário com permissão de leitura e escrita apenas no banco `thindesk`, autorize o IP do seu computador em **Network Access** e obtenha a conexão em **Connect → Drivers**.
+2. Na raiz do projeto, configure as variáveis de ambiente no PowerShell. Substitua a conexão e as senhas de exemplo pelos seus valores:
 
    ```powershell
    $env:THINDESK_PASSWORD = "sua-senha-de-usuario"
    $env:THINDESK_TECNICO_PASSWORD = "sua-senha-de-tecnico"
+   $env:THINDESK_MONGODB_URI = "mongodb+srv://USUARIO:SENHA@SEU_CLUSTER/thindesk?retryWrites=true&w=majority&authSource=admin"
    ```
 
-   As senhas devem ser definidas antes de iniciar a aplicação. A conexão está configurada para o MongoDB local em `application.properties`.
+   A conexão e as senhas devem ser definidas antes de iniciar a aplicação. A senha do banco é diferente das senhas de login do ThinDesk. Caso ela contenha caracteres especiais, utilize a versão codificada para URL na conexão. Mantenha os valores reais fora do Git.
+
+   Se o endereço `mongodb+srv` apresentar erro de DNS, obtenha a conexão alternativa ativando **Legacy URI String** no Atlas. Use a conexão completa fornecida, com TLS/SSL habilitado.
 
 3. Compile e inicie a aplicação no mesmo terminal:
 
@@ -48,13 +45,15 @@ Projeto acadêmico em Java com Spring Boot, API REST e MongoDB para abertura, ac
 
 1. Abra a pasta do projeto e importe o `pom.xml` como projeto Maven.
 2. Em **File → Project Structure → Project SDK**, selecione o JDK 23.
-3. Inicie o MongoDB pelo script acima.
+3. Confirme que o cluster do Atlas está disponível e que o IP do computador está autorizado.
 4. Em **Run → Edit Configurations**, crie uma configuração do tipo **Application**, com a classe principal `com.pfc.ThindeskApplication` e o módulo `thindesk`.
-5. Configure o JRE 23 e as variáveis `THINDESK_PASSWORD` e `THINDESK_TECNICO_PASSWORD` com suas senhas locais. Depois clique em **Run**.
+5. Configure o JRE 23 e as variáveis `THINDESK_PASSWORD`, `THINDESK_TECNICO_PASSWORD` e `THINDESK_MONGODB_URI` com seus valores. Depois clique em **Run**.
 
-Neste computador, a configuração **ThinDesk Local** já foi preparada com o Java 23 e as duas senhas de demonstração: `senha-local-usuario` para `admin` e `senha-local-tecnico` para `tecnico`. A configuração fica na pasta `.idea`, ignorada pelo Git. Após importar o Maven, selecione **ThinDesk Local** e clique em **Run**.
+As configurações locais do IntelliJ ficam em `.idea`, ignorada pelo Git. Para a demonstração, as senhas de login podem ser `senha-local-usuario` para `admin` e `senha-local-tecnico` para `tecnico`.
 
-Para visualizar os dados no MongoDB Compass, conecte a `mongodb://localhost:27017`, abra o banco `thindesk` e a coleção `chamados`.
+Neste computador, a configuração **ThinDesk Atlas** utiliza o arquivo privado `.local/atlas.properties` para carregar `THINDESK_MONGODB_URI`. Esse arquivo e as configurações da IDE não são enviados ao GitHub.
+
+Para visualizar os dados no navegador, abra **Data Explorer** no Atlas, selecione o cluster e abra `thindesk → chamados`. O banco e as coleções são criados pela aplicação ao iniciar com uma conexão autorizada.
 
 ## Autenticação na API
 
@@ -97,4 +96,6 @@ Exemplo de resolução:
 
 A abertura retorna `201`. Campos obrigatórios inválidos retornam `400`, acesso sem permissão retorna `403`, chamado inexistente retorna `404` e uma nova tentativa de resolver um chamado já resolvido retorna `409`.
 
-Os chamados ficam na coleção `chamados` do banco `thindesk`. Os dados podem ser consultados pelo MongoDB Compass para demonstrar a persistência.
+Os chamados ficam na coleção `chamados` do banco `thindesk`. Atualize o Data Explorer do Atlas para demonstrar a persistência.
+
+Se preferir usar MongoDB local, inicie o servidor com `powershell -ExecutionPolicy Bypass -File .\iniciar-mongodb.ps1` e defina `THINDESK_MONGODB_URI` como `mongodb://localhost:27017/thindesk`. Os dados do servidor iniciado pelo script ficam em `.local/mongodb/dados`, fora do Git.
