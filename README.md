@@ -2,6 +2,22 @@
 
 Sistema acadêmico de controle de chamados técnicos, desenvolvido em Java com Spring Boot, Thymeleaf e MongoDB, a partir do projeto base apresentado em sala.
 
+## Acesso à aplicação
+
+- **Aplicação:** [ThinDesk no Render](https://thindesk.onrender.com).
+- **Código-fonte:** [repositório individual no GitHub](https://github.com/Diego251Fagundes/thindesk).
+
+Credenciais configuradas para a demonstração:
+
+| Perfil | Usuário | Senha |
+| --- | --- | --- |
+| Solicitante | `admin` | `admin123` |
+| Técnico | `tecnico` | `tecnico123` |
+
+Qualquer pessoa pode utilizar essas contas para avaliar o sistema. O solicitante abre e acompanha seus chamados; o técnico consulta todos os chamados e registra as soluções. Para trocar de perfil, clique em **Sair**.
+
+**Validação online realizada em 14/11/2026:** login dos dois perfis, abertura e resolução de chamados, persistência no Atlas, permissões, filtros de 30/60/90 dias e logout.
+
 ## Versão e versionamento
 
 **Versão atual: `1.0.0-beta`**, definida no `pom.xml`.
@@ -15,7 +31,7 @@ O projeto adota o formato de versionamento semântico `MAJOR.MINOR.PATCH`, com u
 | `PATCH` | Correções compatíveis, sem acrescentar funcionalidades. | `1.0.0` → `1.0.1` |
 | `-beta` | Identifica uma versão de pré-lançamento, ainda em validação. | `1.0.0-beta` → `1.0.0` |
 
-Em `1.0.0-beta`, o `1` identifica a primeira versão principal; os dois zeros indicam que ainda não houve incremento de funcionalidades ou correções dentro dessa versão. O sufixo `beta` identifica a etapa de validação local, anterior à publicação final. O pacote gerado pelo Maven é `target/thindesk-1.0.0-beta.war`.
+Em `1.0.0-beta`, o `1` identifica a primeira versão principal; os dois zeros indicam que ainda não houve incremento de funcionalidades ou correções dentro dessa versão. O sufixo `beta` identifica a etapa de validação da versão acadêmica. O pacote gerado pelo Maven é `target/thindesk-1.0.0-beta.war`.
 
 ## Funcionalidades
 
@@ -174,13 +190,13 @@ Na API, a abertura retorna `201`; campos obrigatórios inválidos retornam `400`
 
 ## Deploy
 
-O projeto está preparado para publicação no **Render**, como um **Web Service** com runtime **Docker** e plano **Free**. O banco da instância publicada será o MongoDB Atlas.
+O serviço [ThinDesk](https://thindesk.onrender.com) está configurado no **Render**, como um **Web Service** com runtime **Docker** e plano **Free**, utilizando o MongoDB Atlas para persistir os chamados.
 
 - O `Dockerfile` compila e testa a aplicação com Maven e Java 23. A imagem final executa apenas o pacote, com usuário sem privilégios de administrador.
 - O arquivo `.dockerignore` limita os arquivos enviados para a compilação, excluindo configurações locais e arquivos privados.
 - O perfil `render`, ativado pelo contêiner, utiliza a variável `PORT` do serviço, aceita conexões em `0.0.0.0`, reconhece os cabeçalhos HTTPS do proxy e marca o cookie de sessão como seguro para acesso HTTPS.
 
-Na configuração do serviço, utilize o repositório deste projeto, a branch `feat/finalizacao` e o `Dockerfile` da raiz. Configure as variáveis abaixo no ambiente do Render:
+O serviço utiliza o repositório deste projeto, a branch `main` e o `Dockerfile` da raiz. As variáveis abaixo são configuradas no ambiente do Render:
 
 | Variável | Valor |
 | --- | --- |
@@ -194,4 +210,4 @@ Para testar o contêiner exclusivamente por HTTP local, defina `SERVER_SERVLET_S
 
 No plano gratuito, o serviço pode suspender após 15 minutos sem acessos; a próxima abertura pode levar cerca de um minuto. Os dados permanecem no Atlas. Consulte as [limitações do plano gratuito](https://render.com/docs/free).
 
-O deploy ainda não foi realizado. O endereço público e a confirmação das credenciais da instância publicada serão acrescentados após a validação online.
+As duas faixas de saída do serviço no Render foram autorizadas no Atlas. O fluxo de login, abertura e resolução foi validado pela URL pública, incluindo a consulta da solução pelo solicitante.
