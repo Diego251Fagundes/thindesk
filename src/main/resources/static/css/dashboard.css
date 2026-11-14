@@ -7,10 +7,6 @@
     background: #f3f6fa;
     color: var(--dash-ink);
 }
-.dashboard-page > aside, .dashboard-page #sidebar { background: #172c46; }
-.dashboard-page #sidebar h4 { font-size: 1.25rem; font-weight: 700; text-align: left !important; padding: 28px 24px !important; }
-.dashboard-page #sidebar .nav-link { padding: 13px 24px; }
-.dashboard-page #sidebar a:hover, .dashboard-page #sidebar a:focus-visible, .dashboard-page #sidebar a[aria-current="page"] { background: #28425f; }
 .dashboard-main { flex: 1; min-width: 0; padding: 32px; }
 .dashboard { max-width: 1600px; margin: 0 auto; }
 .dashboard h1 { font-size: 2rem; font-weight: 700; letter-spacing: -.035em; margin: 0 0 8px; }
@@ -113,7 +109,6 @@
     .dashboard-header { align-items: flex-start; flex-wrap: wrap; }
     .dashboard-header h1 { font-size: 1.8rem; }
     .dashboard-header p { font-size: .85rem; }
-    .dashboard-page #sidebar .d-none { display: inline !important; }
     .dashboard-new { margin-left: auto; }
     .dashboard-metrics { gap: 12px; }
     .metric { padding: 17px; }

@@ -1,10 +1,12 @@
-// Alternar sidebar em telas pequenas
-document.querySelector('.toggle-btn').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('active');
-});
+// Alternar o menu em telas pequenas.
+const menuButton = document.querySelector('.toggle-btn');
+const sidebar = document.getElementById('sidebar');
 
-// Alternar submenu
-function toggleSubmenu(event, element) {
-    event.preventDefault();
-    element.parentElement.classList.toggle('open');
+if (menuButton && sidebar) {
+    menuButton.setAttribute('aria-controls', 'sidebar');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.addEventListener('click', () => {
+        const aberto = sidebar.classList.toggle('active');
+        menuButton.setAttribute('aria-expanded', String(aberto));
+    });
 }

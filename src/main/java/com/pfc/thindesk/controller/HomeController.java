@@ -1,15 +1,9 @@
 package com.pfc.thindesk.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.pfc.thindesk.entity.Cliente;
 import com.pfc.thindesk.entity.Chamado;
-import com.pfc.thindesk.entity.HorarioAtendimento;
 import com.pfc.thindesk.dto.AberturaChamadoRequest;
 import com.pfc.thindesk.dto.ResolucaoChamadoRequest;
-import com.pfc.thindesk.service.ClienteService;
 import com.pfc.thindesk.service.ChamadoService;
-import com.pfc.thindesk.service.HorarioAtendimentoService;
 import java.util.List;
 import java.time.Instant;
 import com.pfc.thindesk.service.DashboardService;
@@ -31,16 +25,10 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class HomeController {
 
-    private static final Logger log = LoggerFactory.getLogger(HomeController.class);
-
     @Autowired
     private ChamadoService chamadoService;
     @Autowired
     private DashboardService dashboardService;
-    @Autowired
-    private ClienteService clienteService;
-    @Autowired
-    private HorarioAtendimentoService horarioAtendimentoService;
 
     @GetMapping("/login")
     public String login() {
@@ -55,6 +43,7 @@ public class HomeController {
                 ? chamadoService.listarChamadosParaAtendimento()
                 : chamadoService.listarChamados(autenticacao.getName());
         modelAndView.addObject("tecnico", tecnico);
+        modelAndView.addObject("paginaAtual", "dashboard");
         modelAndView.addObject("dashboard", dashboardService.resumir(chamados, dias, Instant.now()));
         return modelAndView;
     }
@@ -66,12 +55,14 @@ public class HomeController {
                 ? chamadoService.listarChamadosParaAtendimento()
                 : chamadoService.listarChamados(autenticacao.getName());
         model.addAttribute("chamados", chamados);
+        model.addAttribute("paginaAtual", "chamados");
         model.addAttribute("tecnico", tecnico);
         return "chamados";
     }
 
     @GetMapping("/chamados/novo")
     public String novoChamado(Model model) {
+        model.addAttribute("paginaAtual", "chamados");
         model.addAttribute("dados", new AberturaChamadoRequest("", ""));
         return "chamados/novo";
     }
@@ -79,6 +70,7 @@ public class HomeController {
     @PostMapping("/chamados")
     public String abrirChamado(@ModelAttribute("dados") AberturaChamadoRequest dados,
                               Principal solicitante, Model model, RedirectAttributes redirectAttributes) {
+        model.addAttribute("paginaAtual", "chamados");
         try {
             chamadoService.criarChamado(dados, solicitante.getName());
         } catch (ResponseStatusException erro) {
@@ -94,6 +86,7 @@ public class HomeController {
 
     @GetMapping("/chamados/{id}")
     public String detalhesChamado(@PathVariable("id") String id, Model model, Authentication autenticacao) {
+        model.addAttribute("paginaAtual", "chamados");
         boolean tecnico = ehTecnico(autenticacao);
         Chamado chamado = tecnico
                 ? chamadoService.consultarChamadoParaAtendimento(id)
@@ -129,26 +122,6 @@ public class HomeController {
     private boolean ehTecnico(Authentication autenticacao) {
         return autenticacao.getAuthorities().stream()
                 .anyMatch(permissao -> permissao.getAuthority().equals("ROLE_TECNICO"));
-    }
-
-    @GetMapping("/clientes")
-    public String clientes(Model model) {
-        List<Cliente> clientes = clienteService.listarClientes();
-        model.addAttribute("clientes", clientes);
-        String fragment = "clientes :: content";
-        log.info("Carregando fragmento: {}", fragment); // Log para depuração
-        model.addAttribute("content", fragment);
-        return "clientes";
-    }
-    
-    @GetMapping("/ajustes-horarios")
-    public String horarios(Model model) {
-        List<HorarioAtendimento> horarios = horarioAtendimentoService.listarTodos();
-        model.addAttribute("ajustes-horarios", horarios);
-        String fragment = "ajustes-horarios :: content";
-        log.info("Carregando fragmento: {}", fragment); // Log para depuração
-        model.addAttribute("content", fragment);
-        return "ajustes-horarios";
     }
 
 }

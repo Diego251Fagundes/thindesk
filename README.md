@@ -19,7 +19,7 @@ Em `1.0.0-beta`, o `1` identifica a primeira versão principal; os dois zeros in
 
 ## Funcionalidades
 
-- Login com perfis de solicitante e técnico.
+- Login com perfis de solicitante e técnico, mensagem de credenciais inválidas e botão **Sair** para encerrar a sessão.
 - Abertura de chamados com título e descrição, registrando solicitante, data de abertura e status `ABERTO` automaticamente.
 - Consulta dos próprios chamados pelo solicitante e de todos os chamados pelo técnico, pela interface web.
 - Resolução pelo técnico, com solução, responsável, data de resolução e status `RESOLVIDO`.
@@ -86,10 +86,10 @@ Apesar do nome `admin`, esse usuário possui o papel de **solicitante** nesta im
 
 1. Entre como `admin` e acesse **Chamados → Novo chamado**.
 2. Preencha título e descrição e clique em **Abrir chamado**. Confira a confirmação e o status `ABERTO` na listagem.
-3. Abra novamente `/login` e entre como `tecnico` para trocar de perfil.
+3. Clique em **Sair** no menu lateral e entre como `tecnico` para trocar de perfil.
 4. Acesse **Chamados → Ver detalhes**, informe a solução e clique em **Resolver chamado**.
 5. Confira o status `RESOLVIDO`, o técnico, a solução e a data de resolução. O formulário de resolução deixa de ser exibido.
-6. Entre novamente como `admin` e consulte a solução em **Ver detalhes**. Confira também os indicadores e filtros no dashboard.
+6. Clique em **Sair**, entre novamente como `admin` e consulte a solução em **Ver detalhes**. Confira também os indicadores e filtros no dashboard.
 
 Para encerrar a aplicação iniciada no terminal, pressione `Ctrl+C`.
 
@@ -130,9 +130,16 @@ Os testes automatizados do dashboard verificam os limites dos períodos no fuso 
 
 ## API de chamados
 
-Para autenticar no Postman ou Insomnia, envie `POST http://localhost:8080/login` com corpo `x-www-form-urlencoded` e os campos `username` e `password`, usando as credenciais configuradas no ambiente.
+O login utiliza sessão e a proteção CSRF está habilitada, inclusive na API. Os formulários do navegador enviam o token automaticamente.
 
-O login utiliza sessão. Mantenha o cookie `JSESSIONID` nas próximas requisições. Para sair, envie `POST /logout`.
+Para autenticar no Postman ou Insomnia:
+
+1. Envie `GET http://localhost:8080/login`, mantenha o cookie `JSESSIONID` e copie o valor do campo oculto `_csrf` no HTML retornado.
+2. Envie `POST /login` com corpo `x-www-form-urlencoded`, incluindo `username`, `password` e `_csrf`, usando as credenciais configuradas no ambiente e a mesma sessão.
+3. Após o login, atualize o cookie caso ele tenha mudado e envie `GET /`. Copie o novo token `_csrf` do formulário **Sair**, pois o token é renovado na autenticação.
+4. Mantenha a sessão nas próximas requisições. Em `POST`, `PUT` e `DELETE`, envie o token no cabeçalho `X-CSRF-TOKEN`. Para sair, envie `POST /logout` com esse cabeçalho.
+
+Requisições que alteram dados sem um token CSRF válido retornam `403`. Depois de sair, obtenha uma nova sessão e um novo token na página de login antes de autenticar novamente.
 
 Todas as rotas abaixo exigem autenticação. Nos corpos JSON, utilize `Content-Type: application/json`.
 
@@ -167,4 +174,24 @@ Na API, a abertura retorna `201`; campos obrigatórios inválidos retornam `400`
 
 ## Deploy
 
-O deploy ainda não foi realizado. O endereço público e as credenciais da instância publicada serão documentados após essa etapa.
+O projeto está preparado para publicação no **Render**, como um **Web Service** com runtime **Docker** e plano **Free**. O banco da instância publicada será o MongoDB Atlas.
+
+- O `Dockerfile` compila e testa a aplicação com Maven e Java 23. A imagem final executa apenas o pacote, com usuário sem privilégios de administrador.
+- O arquivo `.dockerignore` limita os arquivos enviados para a compilação, excluindo configurações locais e arquivos privados.
+- O perfil `render`, ativado pelo contêiner, utiliza a variável `PORT` do serviço, aceita conexões em `0.0.0.0`, reconhece os cabeçalhos HTTPS do proxy e marca o cookie de sessão como seguro para acesso HTTPS.
+
+Na configuração do serviço, utilize o repositório deste projeto, a branch `feat/finalizacao` e o `Dockerfile` da raiz. Configure as variáveis abaixo no ambiente do Render:
+
+| Variável | Valor |
+| --- | --- |
+| `THINDESK_MONGODB_URI` | Conexão privada do MongoDB Atlas, com acesso ao banco `thindesk`. |
+| `THINDESK_PASSWORD` | Senha do solicitante `admin`; para demonstração, `admin123`. |
+| `THINDESK_TECNICO_PASSWORD` | Senha do técnico `tecnico`; para demonstração, `tecnico123`. |
+
+A conexão real com o banco deve permanecer nas variáveis do serviço, fora do repositório. Autorize também os endereços de saída do serviço no acesso de rede do Atlas.
+
+Para testar o contêiner exclusivamente por HTTP local, defina `SERVER_SERVLET_SESSION_COOKIE_SECURE=false` na execução de teste. No perfil do Render, o cookie seguro é habilitado por padrão para o acesso HTTPS.
+
+No plano gratuito, o serviço pode suspender após 15 minutos sem acessos; a próxima abertura pode levar cerca de um minuto. Os dados permanecem no Atlas. Consulte as [limitações do plano gratuito](https://render.com/docs/free).
+
+O deploy ainda não foi realizado. O endereço público e a confirmação das credenciais da instância publicada serão acrescentados após a validação online.
