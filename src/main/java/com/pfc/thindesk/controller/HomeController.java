@@ -6,6 +6,7 @@ import com.pfc.thindesk.entity.Cliente;
 import com.pfc.thindesk.entity.Chamado;
 import com.pfc.thindesk.entity.HorarioAtendimento;
 import com.pfc.thindesk.dto.AberturaChamadoRequest;
+import com.pfc.thindesk.dto.ResolucaoChamadoRequest;
 import com.pfc.thindesk.service.ClienteService;
 import com.pfc.thindesk.service.ChamadoService;
 import com.pfc.thindesk.service.HorarioAtendimentoService;
@@ -17,6 +18,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -49,9 +52,13 @@ public class HomeController {
     }
 
     @GetMapping("/chamados")
-    public String chamados(Model model, Principal solicitante) {
-        List<Chamado> chamados = chamadoService.listarChamados(solicitante.getName());
+    public String chamados(Model model, Authentication autenticacao) {
+        boolean tecnico = ehTecnico(autenticacao);
+        List<Chamado> chamados = tecnico
+                ? chamadoService.listarChamadosParaAtendimento()
+                : chamadoService.listarChamados(autenticacao.getName());
         model.addAttribute("chamados", chamados);
+        model.addAttribute("tecnico", tecnico);
         return "chamados";
     }
 
@@ -75,6 +82,45 @@ public class HomeController {
         }
         redirectAttributes.addFlashAttribute("mensagem", "Chamado aberto com sucesso.");
         return "redirect:/chamados";
+    }
+
+    @GetMapping("/chamados/{id}")
+    public String detalhesChamado(@PathVariable("id") String id, Model model, Authentication autenticacao) {
+        boolean tecnico = ehTecnico(autenticacao);
+        Chamado chamado = tecnico
+                ? chamadoService.consultarChamadoParaAtendimento(id)
+                : chamadoService.consultarChamado(id, autenticacao.getName());
+        model.addAttribute("chamado", chamado);
+        model.addAttribute("tecnico", tecnico);
+        if (!model.containsAttribute("dados")) {
+            model.addAttribute("dados", new ResolucaoChamadoRequest(""));
+        }
+        return "chamados/detalhes";
+    }
+
+    @PostMapping("/chamados/{id}/resolver")
+    public String resolverChamado(@PathVariable("id") String id,
+                                 @ModelAttribute("dados") ResolucaoChamadoRequest dados,
+                                 Authentication autenticacao, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            chamadoService.resolverChamado(id, dados, autenticacao.getName());
+        } catch (ResponseStatusException erro) {
+            if (erro.getStatusCode().equals(HttpStatus.BAD_REQUEST)) {
+                model.addAttribute("erro", "Informe a solução antes de resolver o chamado.");
+            } else if (erro.getStatusCode().equals(HttpStatus.CONFLICT)) {
+                model.addAttribute("erro", "Este chamado já foi resolvido e não pode ser alterado.");
+            } else {
+                throw erro;
+            }
+            return detalhesChamado(id, model, autenticacao);
+        }
+        redirectAttributes.addFlashAttribute("mensagem", "Chamado resolvido com sucesso.");
+        return "redirect:/chamados/" + id;
+    }
+
+    private boolean ehTecnico(Authentication autenticacao) {
+        return autenticacao.getAuthorities().stream()
+                .anyMatch(permissao -> permissao.getAuthority().equals("ROLE_TECNICO"));
     }
 
     @GetMapping("/clientes")

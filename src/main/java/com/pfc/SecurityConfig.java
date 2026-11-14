@@ -46,6 +46,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**", "/dist/**", "/plugins/**", "/js/**", "/images/**").permitAll() // Permitir acesso à página de login e arquivos estáticos
                 .requestMatchers(HttpMethod.PUT, "/api/chamados/*/resolver").hasRole("TECNICO")
+                .requestMatchers(HttpMethod.POST, "/chamados/*/resolver").hasRole("TECNICO")
                 .anyRequest().authenticated() // Exigir autenticação para qualquer outra página
             )
             .formLogin(form -> form

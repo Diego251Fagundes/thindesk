@@ -44,16 +44,24 @@ public class ChamadoService {
         return chamadoRepository.findByUsuario(usuario);
     }
 
+    public List<Chamado> listarChamadosParaAtendimento() {
+        return chamadoRepository.findAll();
+    }
+
     public List<Chamado> listarChamadosDoUsuario(String usuario, String solicitante) {
         validarAcesso(usuario, solicitante);
         return listarChamados(usuario);
     }
 
     public Chamado consultarChamado(String id, String solicitante) {
-        Chamado chamado = chamadoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado."));
+        Chamado chamado = consultarChamadoParaAtendimento(id);
         validarAcesso(chamado.getUsuario(), solicitante);
         return chamado;
+    }
+
+    public Chamado consultarChamadoParaAtendimento(String id) {
+        return chamadoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Chamado nao encontrado."));
     }
 
     private void validarAcesso(String usuario, String solicitante) {

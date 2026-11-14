@@ -22,11 +22,11 @@
         </button>
         <main class="container-fluid p-4 overflow-hidden">
             <header class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4 mt-md-0 mb-4 pb-3 border-bottom">
-                <h1 class="h2 mb-0">Meus chamados</h1>
+                <h1 class="h2 mb-0" th:text="${tecnico ? 'Todos os chamados' : 'Meus chamados'}">Meus chamados</h1>
                 <a th:href="@{/chamados/novo}" class="btn btn-primary ms-auto">Novo chamado</a>
             </header>
             <p th:if="${mensagem}" th:text="${mensagem}" class="alert alert-success" role="status"></p>
-            <p th:if="${#lists.isEmpty(chamados)}">Você ainda não abriu nenhum chamado.</p>
+            <p th:if="${#lists.isEmpty(chamados)}" th:text="${tecnico ? 'Nenhum chamado cadastrado.' : 'Você ainda não abriu nenhum chamado.'}"></p>
             <div class="table-responsive" th:unless="${#lists.isEmpty(chamados)}">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -35,6 +35,8 @@
                             <th scope="col">Descrição</th>
                             <th scope="col">Status</th>
                             <th scope="col">Técnico</th>
+                            <th scope="col" th:if="${tecnico}">Solicitante</th>
+                            <th scope="col">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,6 +45,8 @@
                             <td class="text-break" th:text="${chamado.descricao}"></td>
                             <td th:text="${chamado.status}"></td>
                             <td th:text="${chamado.tecnico ?: 'Não atribuído'}"></td>
+                            <td th:if="${tecnico}" th:text="${chamado.usuario}"></td>
+                            <td><a th:href="@{/chamados/{id}(id=${chamado.id})}" class="btn btn-outline-primary btn-sm text-nowrap">Ver detalhes</a></td>
                         </tr>
                     </tbody>
                 </table>
