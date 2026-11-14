@@ -11,6 +11,8 @@ import com.pfc.thindesk.service.ClienteService;
 import com.pfc.thindesk.service.ChamadoService;
 import com.pfc.thindesk.service.HorarioAtendimentoService;
 import java.util.List;
+import java.time.Instant;
+import com.pfc.thindesk.service.DashboardService;
 import java.security.Principal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +36,8 @@ public class HomeController {
     @Autowired
     private ChamadoService chamadoService;
     @Autowired
+    private DashboardService dashboardService;
+    @Autowired
     private ClienteService clienteService;
     @Autowired
     private HorarioAtendimentoService horarioAtendimentoService;
@@ -43,11 +48,14 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public ModelAndView home() {
+    public ModelAndView home(Authentication autenticacao, @RequestParam(name = "dias", defaultValue = "30") int dias) {
         ModelAndView modelAndView = new ModelAndView("layout");
-        String fragment = "home :: content";
-        log.info("Carregando fragmento: {}", fragment); // Log para depuração
-        modelAndView.addObject("content", fragment);
+        boolean tecnico = ehTecnico(autenticacao);
+        List<Chamado> chamados = tecnico
+                ? chamadoService.listarChamadosParaAtendimento()
+                : chamadoService.listarChamados(autenticacao.getName());
+        modelAndView.addObject("tecnico", tecnico);
+        modelAndView.addObject("dashboard", dashboardService.resumir(chamados, dias, Instant.now()));
         return modelAndView;
     }
 
