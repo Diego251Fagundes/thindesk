@@ -4,7 +4,7 @@
 
     <groupId>com.pfc</groupId>
     <artifactId>thindesk</artifactId>
-    <version>1.0-alpha</version>
+    <version>1.0.0-beta</version>
     <packaging>war</packaging>
     <name>thindesk</name>
 
