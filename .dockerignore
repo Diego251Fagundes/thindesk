@@ -1,0 +1,14 @@
+# Envia apenas o pom.xml e os fontes para a compilação.
+**
+!pom.xml
+!src/
+!src/**
+**/application-local.properties
+**/.env
+**/.env.*
+**/*.log
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks

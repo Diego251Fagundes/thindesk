@@ -1,5 +1,6 @@
 # Arquivos gerados pelo Maven
 /target/
+/.local/
 
 # Configuracoes locais e credenciais
 .env

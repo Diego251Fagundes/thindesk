@@ -1,35 +1,79 @@
 /* Estilos adicionais para páginas com sidebar */
+:root {
+    --sidebar-background: #172c46;
+    --sidebar-highlight: #28425f;
+}
+
 body {
     display: flex;
     min-height: 100vh;
     flex-direction: row;
 }
 
-#sidebar {
-    min-width: 250px;
-    max-width: 250px;
-    background-color: #343a40;
-    color: white;
-    height: 100vh;
+/* Reserva o espaço do menu, mantendo a rolagem no conteúdo da página. */
+body > aside {
+    flex: 0 0 250px;
+    background-color: var(--sidebar-background);
 }
 
-#sidebar a {
+body > main,
+body > .container {
+    min-width: 0;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 250px;
+    max-width: 250px;
+    background-color: var(--sidebar-background);
+    color: white;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+#sidebar h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: left !important;
+    padding: 28px 24px !important;
+}
+
+#sidebar .nav-link {
+    padding: 13px 24px;
+}
+
+#sidebar a,
+#sidebar .sidebar-logout button {
     color: white;
     text-decoration: none;
 }
 
-#sidebar a:hover {
-    background-color: #495057;
+#sidebar .nav-link:hover,
+#sidebar .nav-link:focus-visible,
+#sidebar a[aria-current="page"] {
+    background-color: var(--sidebar-highlight);
     color: white;
 }
 
-#sidebar .nav-item .submenu {
-    display: none;
-    padding-left: 1.5rem;
+#sidebar .sidebar-logout {
+    margin-top: auto;
+    padding: 16px 0;
 }
 
-#sidebar .nav-item.open .submenu {
-    display: block;
+#sidebar .sidebar-logout button {
+    border: 0;
+    background: transparent;
+}
+
+#sidebar .nav-link:focus-visible {
+    outline: 2px solid white;
+    outline-offset: -4px;
 }
 
 #content {
@@ -37,18 +81,23 @@ body {
     padding: 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
+    body > aside {
+        flex-basis: 0;
+    }
+
     #sidebar {
-        position: fixed;
         left: -250px;
-        top: 0;
-        height: 100%;
         z-index: 1000;
-        transition: all 0.3s;
+        transition: left 0.3s;
     }
 
     #sidebar.active {
         left: 0;
+    }
+
+    #sidebar h4 {
+        padding-top: 60px !important;
     }
 
     #content {

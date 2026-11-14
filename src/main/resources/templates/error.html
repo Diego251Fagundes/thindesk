@@ -1,19 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
     <head>
         <meta charset="UTF-8">
-        <title>Erro ao carregar a página</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ENjdO4Dr2bkBIFxQpeo3MmAa7x7x1A1rX4NfhZGwr2aUZv3ozXSoq2nzDQ95D6w+" crossorigin="anonymous">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-pp6WNno58Q7z0bkIVkI6df4qkg2cdK7R+lv4U/1p6F1XUllq3zhx8Xf6VOZoJp+0" crossorigin="anonymous"></script>
-
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Não foi possível abrir a página - ThinDesk</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
-    <body>
-        <div style="position: relative; width: 100%; height: 0; padding-top: 56.2225%;
-             padding-bottom: 0; box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.6em; margin-bottom: 0.9em; overflow: hidden;
-             border-radius: 8px; will-change: transform;">
-            <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0;margin: 0;"
-                    src="https://www.canva.com/design/DAGZFzqWqTU/s4fm9bg30dUDGqLvvaWmIg/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen" >
-            </iframe>
-        </div>
+    <body class="bg-light">
+        <main class="container min-vh-100 d-flex flex-column justify-content-center py-5">
+            <div th:switch="${status}">
+                <div th:case="400">
+                    <h1 class="h3">Solicitação inválida</h1>
+                    <p class="text-secondary">Verifique as informações enviadas e tente novamente.</p>
+                </div>
+                <div th:case="403">
+                    <h1 class="h3">Acesso não permitido</h1>
+                    <p class="text-secondary">Seu perfil não tem permissão para realizar esta ação.</p>
+                </div>
+                <div th:case="404">
+                    <h1 class="h3">Página não encontrada</h1>
+                    <p class="text-secondary">O endereço solicitado não existe ou não está disponível.</p>
+                </div>
+                <div th:case="*">
+                    <h1 class="h3">Não foi possível concluir a solicitação</h1>
+                    <p class="text-secondary">Tente novamente em alguns instantes.</p>
+                </div>
+            </div>
+            <div><a th:href="@{/}" class="btn btn-primary">Voltar ao início</a></div>
+        </main>
     </body>
 </html>

@@ -1,6 +1,72 @@
-<div class="container-fluid vh-100 d-flex justify-content-center align-items-center" th:fragment="content">
-    <div class="text-center">
-        <h1>Bem-vindo ao</h1>
-        <img th:src="@{/images/logo.png}" alt="Logo" width="500" height="500">
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="content" class="dashboard">
+    <header class="dashboard-header">
+        <div><h1>Dashboard</h1><p th:text="${tecnico ? 'Acompanhe a operação e o desempenho dos atendimentos.' : 'Acompanhe seus chamados e os atendimentos realizados.'}"></p></div>
+        <a th:href="@{/chamados/novo}" class="btn btn-primary dashboard-new"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo chamado</a>
+    </header>
+    <div class="dashboard-toolbar">
+        <div class="dashboard-period"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Chamados abertos de <strong th:text="${#temporals.format(dashboard.inicio, 'dd/MM/yyyy')}"></strong> a <strong th:text="${#temporals.format(dashboard.fim, 'dd/MM/yyyy')}"></strong></span></div>
+        <nav class="period-filter" aria-label="Período do dashboard">
+            <a th:each="dias : ${ {30, 60, 90} }" th:href="@{/(dias=${dias})}" th:text="|${dias} dias|" th:classappend="${dashboard.dias == dias ? 'selected' : ''}" th:attr="aria-current=${dashboard.dias == dias ? 'page' : null}"></a>
+        </nav>
     </div>
+    <dl class="dashboard-metrics">
+        <div class="metric"><dt><span>Total de chamados</span><i class="bi bi-headset" aria-hidden="true"></i></dt><dd th:text="${dashboard.total}"></dd><p>No período selecionado</p></div>
+        <div class="metric metric-open"><dt><span>Em aberto</span><i class="bi bi-clock" aria-hidden="true"></i></dt><dd th:text="${dashboard.abertos}"></dd><p>Aguardando resolução</p></div>
+        <div class="metric metric-resolved"><dt><span>Resolvidos</span><i class="bi bi-check2-circle" aria-hidden="true"></i></dt><dd th:text="${dashboard.resolvidos}"></dd><p th:text="|${dashboard.taxaResolucao}% dos chamados do período|"></p></div>
+        <div class="metric metric-time"><dt><span>Tempo médio de resolução</span><i class="bi bi-stopwatch" aria-hidden="true"></i></dt><dd th:text="${dashboard.tempoMedio}"></dd><p th:text="|${dashboard.amostrasTempo} atendimentos com datas válidas|"></p></div>
+    </dl>
+    <div class="dashboard-charts">
+        <section class="dashboard-panel evolution-panel" aria-labelledby="titulo-evolucao">
+            <div class="panel-heading"><div><h2 id="titulo-evolucao">Movimentação dos chamados</h2><p>Aberturas e resoluções por dia, dentro do período.</p></div><div class="chart-legend"><span><i class="legend-line"></i>Aberturas</span><span><i class="legend-line resolved-line"></i>Resoluções</span></div></div>
+            <div class="evolution-chart" id="evolution-chart" role="img" aria-label="Gráfico diário de aberturas e resoluções dos chamados do período"></div>
+            <p th:if="${dashboard.total == 0}" class="chart-empty">Sem movimentação no período selecionado.</p>
+            <details class="chart-data"><summary>Ver dados por dia</summary>
+                <div class="table-responsive chart-data-table"><table class="table table-sm"><thead><tr><th scope="col">Dia</th><th scope="col">Aberturas</th><th scope="col">Resoluções</th></tr></thead>
+                    <tbody><tr th:each="dia : ${dashboard.evolucao}" th:attr="data-dia=${#temporals.format(dia.data, 'dd/MM')},data-aberturas=${dia.aberturas},data-resolucoes=${dia.resolucoes}"><th scope="row" th:text="${#temporals.format(dia.data, 'dd/MM/yyyy')}"></th><td th:text="${dia.aberturas}"></td><td th:text="${dia.resolucoes}"></td></tr></tbody>
+                </table></div>
+            </details>
+        </section>
+        <section class="dashboard-panel status-panel" aria-labelledby="titulo-status">
+            <div class="panel-heading"><div><h2 id="titulo-status">Situação dos chamados</h2><p>Status atual dos chamados do período.</p></div></div>
+            <div class="status-donut">
+                <svg viewBox="0 0 200 200" role="img" th:attr="aria-label=|${dashboard.resolvidos} resolvidos, ${dashboard.abertos} abertos e ${dashboard.outros} em outros status|">
+                    <circle class="donut-track" cx="100" cy="100" r="76"/>
+                    <circle class="donut-resolved" cx="100" cy="100" r="76" pathLength="100" th:attr="stroke-dasharray=|${dashboard.percentualResolvidos} 100|"/>
+                    <circle class="donut-open" cx="100" cy="100" r="76" pathLength="100" th:attr="stroke-dasharray=|${dashboard.percentualAbertos} 100|,stroke-dashoffset=${-dashboard.percentualResolvidos}"/>
+                </svg>
+                <div class="donut-center"><strong th:text="${dashboard.total == 0 ? '—' : dashboard.taxaResolucao + '%'}"></strong><span>resolvidos</span></div>
+            </div>
+            <dl class="status-legend">
+                <div><dt><i class="status-dot resolved-dot"></i>Resolvidos</dt><dd th:text="${dashboard.resolvidos}"></dd></div>
+                <div><dt><i class="status-dot open-dot"></i>Em aberto</dt><dd th:text="${dashboard.abertos}"></dd></div>
+                <div th:if="${dashboard.outros > 0}"><dt><i class="status-dot other-dot"></i>Outros</dt><dd th:text="${dashboard.outros}"></dd></div>
+            </dl>
+        </section>
+    </div>
+    <div class="dashboard-bottom">
+        <section class="dashboard-panel recent-panel" aria-labelledby="titulo-recentes">
+            <div class="panel-heading"><div><h2 id="titulo-recentes">Chamados recentes</h2><p>Últimas cinco aberturas no período.</p></div><a th:href="@{/chamados}" class="panel-link">Ver todos <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+            <p th:if="${#lists.isEmpty(dashboard.recentes)}" class="panel-empty">Nenhum chamado aberto neste período.</p>
+            <div class="table-responsive" th:unless="${#lists.isEmpty(dashboard.recentes)}">
+                <table class="dashboard-table"><thead><tr><th scope="col">Chamado</th><th scope="col">Status</th><th scope="col">Abertura</th><th scope="col"><span class="visually-hidden">Detalhes</span></th></tr></thead>
+                    <tbody><tr th:each="chamado : ${dashboard.recentes}">
+                        <td><a class="ticket-title" th:href="@{/chamados/{id}(id=${chamado.id})}" th:text="${chamado.titulo ?: 'Sem título'}"></a><span class="ticket-owner" th:if="${tecnico}" th:text="${chamado.usuario}"></span></td>
+                        <td><span class="ticket-status" th:classappend="${chamado.status == 'RESOLVIDO' ? 'is-resolved' : (chamado.status == 'ABERTO' ? 'is-open' : '')}" th:text="${chamado.status == 'RESOLVIDO' ? 'Resolvido' : (chamado.status == 'ABERTO' ? 'Aberto' : chamado.status)}"></span></td>
+                        <td class="ticket-date" th:text="${#temporals.format(chamado.dataAbertura.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM HH:mm')}"></td>
+                        <td><a class="ticket-detail" th:href="@{/chamados/{id}(id=${chamado.id})}" th:attr="aria-label=|Ver detalhes: ${chamado.titulo ?: 'Sem título'}|"><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></td>
+                    </tr></tbody>
+                </table>
+            </div>
+        </section>
+        <section class="dashboard-panel ranking-panel" aria-labelledby="titulo-ranking">
+            <div class="panel-heading"><div><h2 id="titulo-ranking">Técnicos mais rápidos</h2><p>Menor tempo médio de resolução primeiro.</p></div><i class="bi bi-bar-chart" aria-hidden="true"></i></div>
+            <ol class="technician-ranking" th:unless="${#lists.isEmpty(dashboard.ranking)}">
+                <li th:each="linha, posicao : ${dashboard.ranking}"><span class="rank-position" th:text="${posicao.count}"></span><div class="rank-content"><div class="rank-top"><strong th:text="${linha.nome}"></strong><span th:text="${linha.tempoMedio}"></span></div><p th:text="|${linha.resolvidos} chamados resolvidos|"></p><div class="rank-track" aria-hidden="true"><span th:style="|width: ${linha.percentualTempo}%|"></span></div></div></li>
+            </ol>
+            <p class="panel-empty" th:if="${#lists.isEmpty(dashboard.ranking)}">O ranking aparecerá quando houver resoluções com técnico e datas válidas.</p>
+            <p class="ranking-note">Da abertura à resolução. Apenas atendimentos dos chamados selecionados.</p>
+        </section>
+    </div>
+    <p class="dashboard-footnote" th:text="${tecnico ? 'Visão de todos os chamados.' : 'Indicadores e ranking calculados apenas sobre os seus chamados.'}"></p>
+    <p class="dashboard-footnote" th:if="${dashboard.semData > 0}" th:text="|${dashboard.semData} chamados sem data de abertura não entram nos filtros e indicadores.|"></p>
 </div>
